@@ -6,7 +6,7 @@ This should work on x86 UniFi Server machine, running UniFi OS v5.0.6 or newer.
 
 This script supports issuing Let's Encrypt SSL certificates via DNS using [Lego](https://go-acme.github.io/lego/).
 
-Out of the box, it has support for select [DNS providers](#dns-providers) but with little work you could get it working with any of the supported [Lego DNS Providers](https://go-acme.github.io/lego/dns/).
+Out of the box, it has support for select [DNS providers](#dns-providers) but with little work you could get it working with any of the supported [Lego DNS Providers](https://go-acme.github.io/lego/dns/). So far only `rfc2136` (via [Technitium](https://technitium.com/dns/)) has been tested.
 
 This fork uses the LEGO installer of [udm-le](https://github.com/kchristensen/udm-le) modified to work for UniFi OS. (unifi-osserver-ssl-import)[https://github.com/MiranoVerhoef/UniFi-OS-Server-SSL-Import/blob/main/unifi-osserver-ssl-import] was used as a large reference.
 
