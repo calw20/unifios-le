@@ -1,39 +1,32 @@
-# Let's Encrypt for Ubiquiti UniFi OS
+# Let's Encrypt for Ubiquiti UniFi OS _Server_
 
 ## Overview
 
-This should work on UniFi devices running UniFi OS 2.x or later, including:
-
-* UniFi Dream Machine
-* UniFi Dream Machine Pro
-* UniFi Dream Machine SE
-* UniFi Dream Router
-* UniFi Dream Wall
-* UniFi Express
-* UniFi Network Video Recorder
-* UniFi Network Video Recorder Professional
-* UniFi Enterprise Fortress Gateway
+This should work on x86 UniFi Server machine, running UniFi OS v5.0.6 or newer.
 
 This script supports issuing Let's Encrypt SSL certificates via DNS using [Lego](https://go-acme.github.io/lego/).
 
-Out of the box, it has tested support for select [DNS providers](#dns-providers) but with little work you could get it working with any of the supported [Lego DNS Providers](https://go-acme.github.io/lego/dns/).
+Out of the box, it has support for select [DNS providers](#dns-providers) but with little work you could get it working with any of the supported [Lego DNS Providers](https://go-acme.github.io/lego/dns/).
+
+This fork uses the LEGO installer of [udm-le](https://github.com/kchristensen/udm-le) modified to work for UniFi OS. (unifi-osserver-ssl-import)[https://github.com/MiranoVerhoef/UniFi-OS-Server-SSL-Import/blob/main/unifi-osserver-ssl-import] was used as a large reference.
 
 ## Installation
 
-1. Copy the contents of this repo to your device at `/data/udm-le`.
-2. Edit `/data/udm-le/udm-le.env` and tweak variables to meet your needs.
-3. If necessary, create and populate the `/data/udm-le/.secrets` directory with the files required by your DNS provider.
-4. Run `/data/udm-le/udm-le.sh initial`. This will handle your initial certificate generation and setup a systemd service to start the service on boot, as well as a systemd timer to attempt certificate renewal each morning between 0300 and 0305.
+1. Copy the contents of this repo to your device at `/data/unifios-le`.
+   1. `git clone https://github.com/calw20/unifios-le.git /data/unifios-le`
+2. Edit `/data/unifios-le/unifios-le.env` and tweak variables to meet your needs.
+3. If necessary, create and populate the `/data/unifios-le/.secrets` directory with the files required by your DNS provider.
+4. Run `/data/unifios-le/unifios-le.sh initial`. This will handle your initial certificate generation and setup a systemd service to start the service on boot, as well as a systemd timer to attempt certificate renewal each morning between 0300 and 0305.
 
 ## Uninstallation
 
 ```bash
-# Disable udm-le from running at boot
-systemctl disable udm-le
+# Disable unifios-le from running at boot
+systemctl disable unifios-le
 
-# Delete any udm-le related data
-rm -rf /data/udm-le /mnt/data/udm-le
-rm -f /etc/systemd/system/udm-le.*
+# Delete any unifios-le related data
+rm -rf /data/unifios-le /mnt/data/unifios-le
+rm -f /etc/systemd/system/unifios-le.*
 
 # Delete any generated certificates, and restart services to generate new self-signed certificates
 rm -f /data/unifi-core/config/*.crt /data/unifi-core/config/*.key /data/unifi-core/config/*.pem
@@ -45,20 +38,20 @@ systemctl restart freeradius
 
 ### AWS Route53
 
-If you use Amazon Route53 as your DNS provider, set the `DNS_PROVIDER` to `route53` and configure variables in `udm-le.env` that start with `AWS_`.
+If you use Amazon Route53 as your DNS provider, set the `DNS_PROVIDER` to `route53` and configure variables in `unifios-le.env` that start with `AWS_`.
 
 ### Azure DNS
 
 If not done already, [delegate a domain to an Azure DNS zone](https://docs.microsoft.com/en-us/azure/dns/dns-delegate-domain-azure-dns).
 
-Assuming the DNS zone lives in subscription `00000000-0000-0000-0000-000000000000` and resource group `udm-le`, with help of the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/) provision an identity to manage the DNS zone by running:
+Assuming the DNS zone lives in subscription `00000000-0000-0000-0000-000000000000` and resource group `unifios-le`, with help of the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/) provision an identity to manage the DNS zone by running:
 
 ```bash
 # Login
 az login
 
 # Create a service principal with contributor (default) permissions over the godns resource group
-az ad sp create-for-rbac --name godns --scope /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/udm-le --role contributor
+az ad sp create-for-rbac --name godns --scope /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/unifios-le --role contributor
 ```
 
 ### Cloudflare
@@ -68,7 +61,7 @@ In your Cloudflare account settings, create an API token with the following perm
 * Zone > Zone > Read
 * Zone > DNS > Edit
 
-Once you have your token generated, add the value to `udm-le.env`.
+Once you have your token generated, add the value to `unifios-le.env`.
 
 ### Digital Ocean
 
@@ -84,13 +77,13 @@ If you use Gandi Live DNS (v5) as your DNS provider, set your `DNS_PROVIDER` to 
 
 ### Google Cloud DNS
 
-GCP Cloud DNS can be configured by establishing a service account with the role [`roles/dns.admin`](https://cloud.google.com/iam/docs/understanding-roles#dns-roles) and exporting a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) for that service account. Ensure that `gcloud` is set for `DNS_PROVIDER` in `udm-le.env`, and `GCE_SERVICE_ACCOUNT_FILE` references the path to the service account key (e.g. `./root/.secrets/my_service_account.json`) . Create a new directory called `.secrets` in `/data/udm-le` and add the service account file.
+GCP Cloud DNS can be configured by establishing a service account with the role [`roles/dns.admin`](https://cloud.google.com/iam/docs/understanding-roles#dns-roles) and exporting a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) for that service account. Ensure that `gcloud` is set for `DNS_PROVIDER` in `unifios-le.env`, and `GCE_SERVICE_ACCOUNT_FILE` references the path to the service account key (e.g. `./root/.secrets/my_service_account.json`) . Create a new directory called `.secrets` in `/data/unifios-le` and add the service account file.
 
-The CLI will output a JSON object. Use the printed properties to initialize your configuration in [udm-le.env](./udm-le.env).
+The CLI will output a JSON object. Use the printed properties to initialize your configuration in [unifios-le.env](./unifios-le.env).
 
 Note:
 
-* The `password` value is a secret and as such you may want to omit it from [udm-le.env](./udm-le.env) and instead set it in a `.secrets/client-secret.txt` file
+* The `password` value is a secret and as such you may want to omit it from [unifios-le.env](./unifios-le.env) and instead set it in a `.secrets/client-secret.txt` file
 * The `appId` value is what [Lego](https://go-acme.github.io/lego/) calls a client id
 
 ### Google Domains
@@ -118,7 +111,7 @@ At the time of writing, the first few steps our out of date and I had to click `
 
 If using Multifactor to login then you will need to read [this article](https://www.name.com/support/articles/360007989433-using-api-with-two-step-authentication) about how to disable multifactor for api only.
 
-There are two values needed for the `udm-le.env` file: your name.com username; your generated api token for production.
+There are two values needed for the `unifios-le.env` file: your name.com username; your generated api token for production.
 
 ### Oracle Cloud Infrastructure (OCI) DNS
 
@@ -133,11 +126,11 @@ ocid1.compartment.oc1..secret
 
 #### To configure the provider
 
-> **Important: do not wrap the values of the `OCI_*` variables in `udm-le.env` with quotes. The lack of quotes around the example values provided in [`udm-le.env`](./udm-le.env) is intentional and must be maintained.
+> **Important: do not wrap the values of the `OCI_*` variables in `unifios-le.env` with quotes. The lack of quotes around the example values provided in [`unifios-le.env`](./unifios-le.env) is intentional and must be maintained.
 
 1. Set the `DNS_PROVIDER` value to `"oraclecloud"`
-1. Uncomment and copy the values from each `~/.oci/config` variable to the similarly named `OCI_*` variable in `udm-le.env`.
-1. Create a new directory at `/data/udm-le/.secrets` and copy the `oci_api_key.pem` file that directory.
+1. Uncomment and copy the values from each `~/.oci/config` variable to the similarly named `OCI_*` variable in `unifios-le.env`.
+1. Create a new directory at `/data/unifios-le/.secrets` and copy the `oci_api_key.pem` file that directory.
 
 ### Zonomi
 

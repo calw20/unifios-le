@@ -3,14 +3,14 @@
 # Set error mode
 set -e
 
-# Ensure permissions on udm-le.env are sane
-if [ $(stat --printf "%04a" /data/udm-le/udm-le.env) != "0600" ]; then
-  chmod 0600 udm-le.env
+# Ensure permissions on unifios-le.env are sane
+if [ $(stat --printf "%04a" /data/unifios-le/unifios-le.env) != "0600" ]; then
+  chmod 0600 unifios-le.env
 fi
 
 # Load environment variables
 set -a
-source /data/udm-le/udm-le.env
+source /data/unifios-le/unifios-le.env
 set +a
 
 # Setup additional variables for later
@@ -21,15 +21,16 @@ RESTART_SERVICES=false
 
 # Show usage
 usage() {
-	echo "Usage: udm-le.sh action [ --restart-services ]"
+	echo "Usage: unifios-le.sh action [ --restart-services ]"
 	echo "Actions:"
-	echo "  - udm-le.sh create_services: Force (re-)creates systemd service and timer for automated renewal."
-	echo "  - udm-le.sh initial: Generate new certificate and set up cron job to renew at 03:00 each morning."
-	echo "  - udm-le.sh install_lego: Force (re-)installs lego, using LEGO_VERSION from udm-le.env."
-	echo "  - udm-le.sh renew: Renew certificate if due for renewal."
-	echo "  - udm-le.sh update_keystore: Update keystore used by Captive Portal/WiFiman"
-	echo "              with either full certificate chain (if NO_BUNDLE='no') or server certificate only (if NO_BUNDLE='yes')."
-	echo "  - udm-le.sh force_deploy_certs: Force deploy certificates even if they have not been updated."
+	echo "  - unifios-le.sh create_services: Force (re-)creates systemd service and timer for automated renewal."
+	echo "  - unifios-le.sh initial: Generate new certificate and set up cron job to renew at 03:00 each morning."
+	echo "  - unifios-le.sh install_lego: Force (re-)installs lego, using LEGO_VERSION from unifios-le.env."
+	echo "  - unifios-le.sh renew: Renew certificate if due for renewal."
+	# ==== UNTESTED ====
+	#echo "  - unifios-le.sh update_keystore: Update keystore used by Captive Portal/WiFiman"
+	#echo "              with either full certificate chain (if NO_BUNDLE='no') or server certificate only (if NO_BUNDLE='yes')."
+	echo "  - unifios-le.sh force_deploy_certs: Force deploy certificates even if they have not been updated."
 	echo ""
 	echo "Options:"
 	echo "  --restart-services: Force restart of services even if certificate was not renewed."
@@ -67,11 +68,11 @@ done
 
 create_services() {
 	# Create systemd service and timers (for renewal)
-	echo "create_services(): Creating udm-le systemd service and timer"
-	cp -f "${UDM_LE_PATH}/resources/systemd/udm-le.service" /etc/systemd/system/udm-le.service
-	cp -f "${UDM_LE_PATH}/resources/systemd/udm-le.timer" /etc/systemd/system/udm-le.timer
+	echo "create_services(): Creating unifios-le systemd service and timer"
+	cp -f "${UDM_LE_PATH}/resources/systemd/unifios-le.service" /etc/systemd/system/unifios-le.service
+	cp -f "${UDM_LE_PATH}/resources/systemd/unifios-le.timer" /etc/systemd/system/unifios-le.timer
 	systemctl daemon-reload
-	systemctl enable udm-le.timer
+	systemctl enable unifios-le.timer
 }
 
 deploy_certs_if_updated() {
@@ -139,7 +140,12 @@ restart_services() {
 	fi
 }
 
-update_keystore() {
+update_keystore(){
+	echo "[WARNING] No changes have been made as this has not been tested. If you want to try it, please edit 'unifios-le.sh'"
+}
+
+# Disabled as un-tested
+danger__update_keystore() {
 	# Update the java keystore with the new certificate
 	if [ "$NO_BUNDLE" == "yes" ]; then
 		# Only import server certifcate to keystore. WiFiman requires a single certificate in the .crt file
@@ -278,8 +284,8 @@ initial)
 	echo "initial(): Attempting certificate generation"
 	echo "initial(): ${LEGO_BINARY} --path \"${LEGO_PATH}\" ${LEGO_ARGS} --accept-tos run"
 	${LEGO_BINARY} --path "${LEGO_PATH}" ${LEGO_ARGS} --accept-tos run && deploy_certs_if_updated && restart_services
-	echo "initial(): Starting udm-le systemd timer"
-	systemctl start udm-le.timer
+	echo "initial(): Starting unifios-le systemd timer"
+	systemctl start unifios-le.timer
 	;;
 install_lego)
 	echo "install_lego(): Forcing installation of lego"
