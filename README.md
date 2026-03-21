@@ -10,6 +10,8 @@ Out of the box, it has support for select [DNS providers](#dns-providers) but wi
 
 This fork uses the LEGO installer of [udm-le](https://github.com/kchristensen/udm-le) modified to work for UniFi OS. (unifi-osserver-ssl-import)[https://github.com/MiranoVerhoef/UniFi-OS-Server-SSL-Import/blob/main/unifi-osserver-ssl-import] was used as a large reference.
 
+> At some point I should merge these changes _back_ into [udm-le](https://github.com/kchristensen/udm-le) but that day is not today.
+
 ## Installation
 
 1. Copy the contents of this repo to your device at `/data/unifios-le`.
