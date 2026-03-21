@@ -124,12 +124,14 @@ restart_services() {
 	# Restart services if certificates have been deployed, or we're forcing it on the command line
 	if [ "${RESTART_SERVICES}" == true ]; then
 		echo "restart_services(): Restarting unifi-core"
-		systemctl restart unifi-core &>/dev/null
+		#systemctl restart unifi-core &>/dev/null
+		uosserver stop
+		uosserver start
 
-		if [ "$ENABLE_CAPTIVE" == "yes" ]; then
-	  		echo "restart_services(): Restarting unifi"
-			systemctl restart unifi &>/dev/null
-   		fi
+		#if [ "$ENABLE_CAPTIVE" == "yes" ]; then
+	  	#	echo "restart_services(): Restarting unifi"
+		#	systemctl restart unifi &>/dev/null
+   		#fi
 
 		if [ "$ENABLE_RADIUS" == "yes" ]; then
 			echo "restart_services(): Restarting freeradius server"
